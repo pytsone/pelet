@@ -1,0 +1,875 @@
+Put your HTML text here<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EcoKocioł – Kalkulator Pelletu i Owsa</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            earth: {
+              cream: '#F7F6F2',
+              card: '#FFFFFF',
+              green: '#2D6A4F',
+              greenLight: '#E8F5E9',
+              greenDark: '#1B4332',
+              sage: '#52B788',
+              blue: '#3A7080',
+              blueLight: '#EBF4F6',
+              brown: '#9C6644',
+              brownLight: '#F3ECE7',
+              textPrimary: '#1E2923',
+              textSecondary: '#5A6B62',
+              border: '#E2E8E4'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #F7F6F2;
+      color: #1E2923;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+    .badge-pellet {
+      background-color: #E8F5E9;
+      color: #1B4332;
+    }
+    .badge-owies {
+      background-color: #F3ECE7;
+      color: #7F4F24;
+    }
+    .tab-active {
+      background-color: #2D6A4F;
+      color: #FFFFFF;
+      box-shadow: 0 4px 6px -1px rgba(45, 106, 79, 0.2);
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-12 antialiased">
+
+  <!-- Pasek Górny -->
+  <header class="bg-white border-b border-earth-border sticky top-0 z-30 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <div class="w-9 h-9 rounded-xl bg-earth-green text-white flex items-center justify-center font-bold text-lg shadow-inner">
+          🌿
+        </div>
+        <div>
+          <h1 class="text-lg font-bold leading-tight text-earth-greenDark tracking-tight">EcoKocioł</h1>
+          <p class="text-xs text-earth-textSecondary font-medium">Pellet & Owies Tracker</p>
+        </div>
+      </div>
+      <button onclick="toggleSettingsModal(true)" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-earth-blueLight text-earth-blue hover:bg-earth-blue hover:text-white transition-all text-xs font-semibold">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span>Cennik i Ustawienia</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 mt-6 space-y-6">
+
+    <!-- KPI: 3 Główne Kafelki Podsumowujące -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+      <!-- Dziś -->
+      <div class="bg-white p-4 rounded-2xl border border-earth-border shadow-sm flex flex-col justify-between relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-16 h-16 bg-earth-greenLight rounded-bl-full -mr-4 -mt-4 opacity-70"></div>
+        <div>
+          <span class="text-xs uppercase tracking-wider font-semibold text-earth-textSecondary">Koszt Dziś</span>
+          <div class="text-2xl font-extrabold text-earth-greenDark mt-1" id="kpiTodayCost">0,00 zł</div>
+        </div>
+        <div class="mt-3 pt-2.5 border-t border-earth-border/60 text-xs text-earth-textSecondary flex justify-between">
+          <span>Pellet: <strong id="kpiTodayPellet" class="text-earth-textPrimary">0 kg</strong></span>
+          <span>Owies: <strong id="kpiTodayOwies" class="text-earth-textPrimary">0 kg</strong></span>
+        </div>
+      </div>
+
+      <!-- Miesiąc -->
+      <div class="bg-white p-4 rounded-2xl border border-earth-border shadow-sm flex flex-col justify-between relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-16 h-16 bg-earth-blueLight rounded-bl-full -mr-4 -mt-4 opacity-70"></div>
+        <div>
+          <div class="flex justify-between items-center">
+            <span class="text-xs uppercase tracking-wider font-semibold text-earth-textSecondary">Koszt Bieżący Miesiąc</span>
+            <span class="text-[10px] bg-earth-blueLight text-earth-blue font-bold px-1.5 py-0.5 rounded" id="currentMonthName">Miesiąc</span>
+          </div>
+          <div class="text-2xl font-extrabold text-earth-blue mt-1" id="kpiMonthCost">0,00 zł</div>
+        </div>
+        <div class="mt-3 pt-2.5 border-t border-earth-border/60 text-xs text-earth-textSecondary flex justify-between">
+          <span>Łącznie: <strong id="kpiMonthKg" class="text-earth-textPrimary">0 kg</strong></span>
+          <span>Śr./dzień: <strong id="kpiMonthDailyAvg" class="text-earth-textPrimary">0,00 zł</strong></span>
+        </div>
+      </div>
+
+      <!-- Sezon -->
+      <div class="bg-white p-4 rounded-2xl border border-earth-border shadow-sm flex flex-col justify-between relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-16 h-16 bg-earth-brownLight rounded-bl-full -mr-4 -mt-4 opacity-70"></div>
+        <div>
+          <div class="flex justify-between items-center">
+            <span class="text-xs uppercase tracking-wider font-semibold text-earth-textSecondary">Koszt Sezon Grzewczy</span>
+            <span class="text-[10px] bg-earth-brownLight text-earth-brown font-bold px-1.5 py-0.5 rounded" id="currentSeasonLabel">2023/2024</span>
+          </div>
+          <div class="text-2xl font-extrabold text-earth-brown mt-1" id="kpiSeasonCost">0,00 zł</div>
+        </div>
+        <div class="mt-3 pt-2.5 border-t border-earth-border/60 text-xs text-earth-textSecondary flex justify-between">
+          <span>Zużycie opału: <strong id="kpiSeasonTons" class="text-earth-textPrimary">0,00 t</strong></span>
+          <span>Dni grzania: <strong id="kpiSeasonDays" class="text-earth-textPrimary">0</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Formularz Zasypu -->
+    <section class="bg-white rounded-2xl border border-earth-border shadow-sm overflow-hidden">
+      <!-- Przełącznik Zakładek: Pellet / Owies -->
+      <div class="p-2 bg-earth-cream/70 border-b border-earth-border grid grid-cols-2 gap-2">
+        <button type="button" id="tabBtnPellet" onclick="switchFuelType('pellet')" class="py-2.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center space-x-2 tab-active">
+          <span>🪵 Zasyp Pelletu</span>
+        </button>
+        <button type="button" id="tabBtnOwies" onclick="switchFuelType('owies')" class="py-2.5 rounded-xl font-bold text-sm text-earth-textSecondary hover:text-earth-textPrimary transition-all flex items-center justify-center space-x-2">
+          <span>🌾 Zasyp Owsa</span>
+        </button>
+      </div>
+
+      <form id="entryForm" onsubmit="handleFormSubmit(event)" class="p-5 md:p-6 space-y-5">
+        <input type="hidden" id="fuelType" value="pellet" />
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Data -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-earth-textSecondary mb-1.5" for="entryDate">Data zasypu</label>
+            <input type="date" id="entryDate" required class="w-full bg-earth-cream/40 border border-earth-border rounded-xl px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-earth-sage transition" />
+          </div>
+
+          <!-- Jednostka wprowadzenia -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-earth-textSecondary mb-1.5">Jednostka ilości</label>
+            <div class="grid grid-cols-2 gap-2 bg-earth-cream/50 p-1 rounded-xl border border-earth-border">
+              <label class="flex items-center justify-center text-xs font-bold py-2 rounded-lg cursor-pointer transition has-[:checked]:bg-white has-[:checked]:text-earth-greenDark has-[:checked]:shadow-sm">
+                <input type="radio" name="entryUnit" value="bags" class="sr-only" checked onchange="updateUnitSelection()" />
+                <span id="unitBagsLabel">Worki</span>
+              </label>
+              <label class="flex items-center justify-center text-xs font-bold py-2 rounded-lg cursor-pointer transition has-[:checked]:bg-white has-[:checked]:text-earth-greenDark has-[:checked]:shadow-sm">
+                <input type="radio" name="entryUnit" value="kg" class="sr-only" onchange="updateUnitSelection()" />
+                <span>Kilogramy (kg)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ilość opału -->
+        <div>
+          <div class="flex justify-between items-center mb-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-earth-textSecondary" for="entryAmount" id="amountInputLabel">
+              Liczba worków
+            </label>
+            <span class="text-xs font-medium text-earth-textSecondary" id="amountEquivalentHint">
+              = 0 kg
+            </span>
+          </div>
+          <div class="relative">
+            <input type="number" id="entryAmount" step="0.1" min="0.1" placeholder="Wpisz ilość, np. 2" required oninput="calculateLivePreview()" class="w-full text-lg font-bold bg-earth-cream/30 border border-earth-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-earth-sage transition text-earth-textPrimary" />
+            <div class="absolute right-3.5 top-3 text-sm font-semibold text-earth-textSecondary pointer-events-none" id="entryAmountSuffix">
+              worek
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamiczny Podgląd Kosztu -->
+        <div class="p-4 rounded-xl bg-gradient-to-r from-earth-greenLight/60 to-earth-blueLight/50 border border-earth-border/80 flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-earth-green shadow-xs font-bold">
+              💰
+            </div>
+            <div>
+              <p class="text-xs text-earth-textSecondary font-semibold">Szacowany koszt tego zasypu:</p>
+              <p class="text-xs text-earth-textSecondary/80" id="rateReferenceHint">Na podstawie aktualnego cennika</p>
+            </div>
+          </div>
+          <div class="text-xl font-extrabold text-earth-greenDark" id="liveCalculatedCost">
+            0,00 zł
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 px-4 bg-earth-green hover:bg-earth-greenDark text-white font-bold rounded-xl transition duration-150 shadow-md active:scale-[0.99] flex items-center justify-center space-x-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+          </svg>
+          <span id="submitButtonText">Zapisz zasyp pelletu</span>
+        </button>
+      </form>
+    </section>
+
+    <!-- Tabela Historii Wpisów -->
+    <section class="bg-white rounded-2xl border border-earth-border shadow-sm overflow-hidden">
+      <div class="p-4 md:p-5 border-b border-earth-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <div>
+          <h2 class="text-base font-bold text-earth-textPrimary">Ostatnie zasypy</h2>
+          <p class="text-xs text-earth-textSecondary">Historia uzupełnień zasobnika pieca</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <!-- Filtr opału -->
+          <select id="historyFilter" onchange="renderHistoryTable()" class="bg-earth-cream text-xs font-semibold border border-earth-border rounded-lg px-2.5 py-1.5 text-earth-textPrimary focus:outline-none focus:ring-1 focus:ring-earth-sage">
+            <option value="all">Wszystkie rodzaje</option>
+            <option value="pellet">Tylko Pellet</option>
+            <option value="owies">Tylko Owies</option>
+          </select>
+          <button onclick="clearAllDataPrompt()" class="text-xs text-red-600 hover:text-red-700 font-semibold px-2 py-1.5 rounded hover:bg-red-50 transition" title="Wyczyść historię">
+            Wyczyść
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-earth-cream/60 text-xs font-semibold text-earth-textSecondary uppercase tracking-wider border-b border-earth-border">
+            <tr>
+              <th class="py-3 px-4">Data</th>
+              <th class="py-3 px-4">Opał</th>
+              <th class="py-3 px-4">Ilość</th>
+              <th class="py-3 px-4 text-right">Koszt</th>
+              <th class="py-3 px-4 text-center">Akcja</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody" class="divide-y divide-earth-border">
+            <!-- Wiersze generowane dynamicznie przez JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <div id="emptyHistoryState" class="hidden p-8 text-center text-earth-textSecondary">
+        <p class="text-3xl mb-2">🪵</p>
+        <p class="font-medium text-sm">Brak zapisanych zasypów.</p>
+        <p class="text-xs text-earth-textSecondary/70 mt-1">Użyj formularza powyżej, aby dodać pierwsze zużycie opału.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: Cennik i Ustawienia Pieca -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden transition-opacity">
+    <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-earth-border p-5 md:p-6 space-y-6">
+      
+      <div class="flex items-center justify-between border-b border-earth-border pb-3">
+        <div>
+          <h3 class="text-lg font-bold text-earth-greenDark">Cennik i Parametry Opału</h3>
+          <p class="text-xs text-earth-textSecondary">Koszty są automatycznie przeliczane na kg</p>
+        </div>
+        <button onclick="toggleSettingsModal(false)" class="text-earth-textSecondary hover:text-earth-textPrimary p-1 rounded-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Konfiguracja Pelletu -->
+      <div class="space-y-3 bg-earth-greenLight/40 p-4 rounded-xl border border-earth-green/20">
+        <div class="flex items-center justify-between">
+          <h4 class="font-bold text-sm text-earth-greenDark flex items-center gap-1.5">
+            <span>🪵</span> Pellet Drzewny
+          </h4>
+          <span class="text-[11px] font-bold text-earth-green bg-white px-2 py-0.5 rounded-full border border-earth-green/20" id="pelletKgRateBadge">
+            0.00 zł / kg
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <label class="block font-semibold text-earth-textSecondary mb-1">Typ ceny zakupu</label>
+            <select id="cfgPelletPricingType" onchange="updateSettingsInputView()" class="w-full bg-white border border-earth-border rounded-lg p-2 font-medium focus:ring-1 focus:ring-earth-sage">
+              <option value="ton">Cena za tonę (1000 kg)</option>
+              <option value="bag">Cena za worek</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-earth-textSecondary mb-1">Waga 1 worka (kg)</label>
+            <input type="number" id="cfgPelletBagWeight" min="1" step="0.5" value="15" oninput="recalcConfigRates()" class="w-full bg-white border border-earth-border rounded-lg p-2 font-medium focus:ring-1 focus:ring-earth-sage" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-earth-textSecondary mb-1" id="cfgPelletPriceLabel">Kwota (zł za tonę)</label>
+          <div class="relative">
+            <input type="number" id="cfgPelletPriceValue" step="0.01" min="0" value="1650" oninput="recalcConfigRates()" class="w-full bg-white border border-earth-border rounded-lg p-2.5 text-sm font-bold text-earth-textPrimary focus:ring-1 focus:ring-earth-sage" />
+            <span class="absolute right-3 top-2.5 text-xs text-earth-textSecondary font-semibold">PLN</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Konfiguracja Owsa -->
+      <div class="space-y-3 bg-earth-brownLight/50 p-4 rounded-xl border border-earth-brown/20">
+        <div class="flex items-center justify-between">
+          <h4 class="font-bold text-sm text-earth-brown flex items-center gap-1.5">
+            <span>🌾</span> Owies Paszowy / Opałowy
+          </h4>
+          <span class="text-[11px] font-bold text-earth-brown bg-white px-2 py-0.5 rounded-full border border-earth-brown/20" id="owiesKgRateBadge">
+            0.00 zł / kg
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <label class="block font-semibold text-earth-textSecondary mb-1">Typ ceny zakupu</label>
+            <select id="cfgOwiesPricingType" onchange="updateSettingsInputView()" class="w-full bg-white border border-earth-border rounded-lg p-2 font-medium focus:ring-1 focus:ring-earth-sage">
+              <option value="ton">Cena za tonę (1000 kg)</option>
+              <option value="bag">Cena za worek / wór</option>
+              <option value="kg">Cena bezpośrednio za kg</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-earth-textSecondary mb-1">Waga 1 worka owsa (kg)</label>
+            <input type="number" id="cfgOwiesBagWeight" min="1" step="0.5" value="30" oninput="recalcConfigRates()" class="w-full bg-white border border-earth-border rounded-lg p-2 font-medium focus:ring-1 focus:ring-earth-sage" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-earth-textSecondary mb-1" id="cfgOwiesPriceLabel">Kwota (zł za tonę)</label>
+          <div class="relative">
+            <input type="number" id="cfgOwiesPriceValue" step="0.01" min="0" value="850" oninput="recalcConfigRates()" class="w-full bg-white border border-earth-border rounded-lg p-2.5 text-sm font-bold text-earth-textPrimary focus:ring-1 focus:ring-earth-sage" />
+            <span class="absolute right-3 top-2.5 text-xs text-earth-textSecondary font-semibold">PLN</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button type="button" onclick="saveSettingsFromModal()" class="w-full py-3 bg-earth-green hover:bg-earth-greenDark text-white font-bold rounded-xl text-sm transition shadow-sm">
+          Zapisz i Przelicz
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Powiadomienie Toast -->
+  <div id="toastMessage" class="fixed bottom-5 right-5 bg-earth-greenDark text-white text-xs font-semibold py-2.5 px-4 rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none flex items-center space-x-2">
+    <span>✓</span>
+    <span id="toastText">Zapisano dane</span>
+  </div>
+
+  <!-- GŁÓWNA LOGIKA JAVASCRIPT -->
+  <script>
+    // --- STAN APLIKACJI & STAŁE ---
+    const STORAGE_KEY_ENTRIES = 'ecokociol_heating_entries_v1';
+    const STORAGE_KEY_SETTINGS = 'ecokociol_heating_settings_v1';
+
+    let settings = {
+      pelletPricingType: 'ton',   // 'ton' | 'bag'
+      pelletPriceValue: 1650,     // PLN
+      pelletBagWeight: 15,        // kg
+      
+      owiesPricingType: 'ton',    // 'ton' | 'bag' | 'kg'
+      owiesPriceValue: 850,       // PLN
+      owiesBagWeight: 30          // kg
+    };
+
+    let entries = [];
+    let currentActiveTab = 'pellet'; // 'pellet' | 'owies'
+
+    // Formatery
+    const currencyFormatter = new Intl.NumberFormat('pl-PL', {
+      style: 'currency',
+      currency: 'PLN',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+    const numberFormatter = new Intl.NumberFormat('pl-PL', {
+      maximumFractionDigits: 1
+    });
+
+    // --- INICJALIZACJA ---
+    window.addEventListener('DOMContentLoaded', () => {
+      loadSettings();
+      loadEntries();
+      
+      // Domyślna data: Dzisiaj w formacie YYYY-MM-DD (czas lokalny)
+      const today = new Date();
+      const localTodayString = formatDateToISO(today);
+      document.getElementById('entryDate').value = localTodayString;
+
+      // Etykieta bieżącego miesiąca i sezonu
+      updateHeaderPeriodLabels(today);
+
+      // Aktualizacja widoków
+      updateUnitSelection();
+      calculateLivePreview();
+      updateAllCalculations();
+      renderHistoryTable();
+    });
+
+    // --- FUNKCJE DATY & SEZONU ---
+    function formatDateToISO(d) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function getSeasonRange(targetDate = new Date()) {
+      // Przyjmujemy sezon grzewczy: 1 września do 31 sierpnia następnego roku
+      const year = targetDate.getFullYear();
+      const month = targetDate.getMonth() + 1; // 1-12
+      let startYear = (month >= 9) ? year : year - 1;
+      let endYear = startYear + 1;
+      
+      return {
+        start: `${startYear}-09-01`,
+        end: `${endYear}-08-31`,
+        label: `${startYear}/${endYear}`
+      };
+    }
+
+    function updateHeaderPeriodLabels(date) {
+      const monthNames = [
+        'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
+        'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'
+      ];
+      document.getElementById('currentMonthName').textContent = monthNames[date.getMonth()];
+      const season = getSeasonRange(date);
+      document.getElementById('currentSeasonLabel').textContent = season.label;
+    }
+
+    // --- PRZELICZNIKI CEN / KG ---
+    function getPricePerKg(fuelType) {
+      if (fuelType === 'pellet') {
+        if (settings.pelletPricingType === 'ton') {
+          return settings.pelletPriceValue / 1000;
+        } else {
+          return settings.pelletPriceValue / (settings.pelletBagWeight || 15);
+        }
+      } else {
+        // Owies
+        if (settings.owiesPricingType === 'ton') {
+          return settings.owiesPriceValue / 1000;
+        } else if (settings.owiesPricingType === 'bag') {
+          return settings.owiesPriceValue / (settings.owiesBagWeight || 30);
+        } else {
+          return settings.owiesPriceValue; // direct / kg
+        }
+      }
+    }
+
+    // --- OBSŁUGA ZAKŁADEK I JEDNOSTEK ---
+    function switchFuelType(type) {
+      currentActiveTab = type;
+      document.getElementById('fuelType').value = type;
+
+      const tabPellet = document.getElementById('tabBtnPellet');
+      const tabOwies = document.getElementById('tabBtnOwies');
+      const submitText = document.getElementById('submitButtonText');
+      const unitBagsLabel = document.getElementById('unitBagsLabel');
+
+      if (type === 'pellet') {
+        tabPellet.className = "py-2.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center space-x-2 tab-active";
+        tabOwies.className = "py-2.5 rounded-xl font-bold text-sm text-earth-textSecondary hover:text-earth-textPrimary transition-all flex items-center justify-center space-x-2";
+        submitText.textContent = "Zapisz zasyp pelletu";
+        unitBagsLabel.textContent = `Worki (${settings.pelletBagWeight} kg)`;
+      } else {
+        tabOwies.className = "py-2.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center space-x-2 tab-active";
+        tabPellet.className = "py-2.5 rounded-xl font-bold text-sm text-earth-textSecondary hover:text-earth-textPrimary transition-all flex items-center justify-center space-x-2";
+        submitText.textContent = "Zapisz zasyp owsa";
+        unitBagsLabel.textContent = `Worki (${settings.owiesBagWeight} kg)`;
+      }
+
+      updateUnitSelection();
+      calculateLivePreview();
+    }
+
+    function updateUnitSelection() {
+      const selectedUnit = document.querySelector('input[name="entryUnit"]:checked').value;
+      const amountInputLabel = document.getElementById('amountInputLabel');
+      const entryAmountSuffix = document.getElementById('entryAmountSuffix');
+      const unitBagsLabel = document.getElementById('unitBagsLabel');
+
+      const bagWeight = (currentActiveTab === 'pellet') ? settings.pelletBagWeight : settings.owiesBagWeight;
+      unitBagsLabel.textContent = `Worki (${bagWeight} kg)`;
+
+      if (selectedUnit === 'bags') {
+        amountInputLabel.textContent = `Liczba worków (${bagWeight} kg / worek)`;
+        entryAmountSuffix.textContent = "worek / worki";
+      } else {
+        amountInputLabel.textContent = "Waga w kilogramach";
+        entryAmountSuffix.textContent = "kg";
+      }
+
+      calculateLivePreview();
+    }
+
+    function calculateLivePreview() {
+      const amountVal = parseFloat(document.getElementById('entryAmount').value);
+      const selectedUnit = document.querySelector('input[name="entryUnit"]:checked').value;
+      const equivHint = document.getElementById('amountEquivalentHint');
+      const costPreview = document.getElementById('liveCalculatedCost');
+      const rateHint = document.getElementById('rateReferenceHint');
+
+      const bagWeight = (currentActiveTab === 'pellet') ? settings.pelletBagWeight : settings.owiesBagWeight;
+      const pricePerKg = getPricePerKg(currentActiveTab);
+
+      if (isNaN(amountVal) || amountVal <= 0) {
+        equivHint.textContent = "= 0 kg";
+        costPreview.textContent = currencyFormatter.format(0);
+        rateHint.textContent = `Cena: ${currencyFormatter.format(pricePerKg)} / kg`;
+        return;
+      }
+
+      let totalKg = 0;
+      if (selectedUnit === 'bags') {
+        totalKg = amountVal * bagWeight;
+        equivHint.textContent = `= ${numberFormatter.format(totalKg)} kg`;
+      } else {
+        totalKg = amountVal;
+        const inBags = (totalKg / bagWeight).toFixed(1);
+        equivHint.textContent = `≈ ${inBags} worka (${bagWeight}kg)`;
+      }
+
+      const totalCost = totalKg * pricePerKg;
+      costPreview.textContent = currencyFormatter.format(totalCost);
+      rateHint.textContent = `Cena: ${currencyFormatter.format(pricePerKg)} / kg (${(currentActiveTab === 'pellet' ? 'Pellet' : 'Owies')})`;
+    }
+
+    // --- DODAWANIE WPISU ---
+    function handleFormSubmit(e) {
+      e.preventDefault();
+
+      const fuelType = document.getElementById('fuelType').value;
+      const date = document.getElementById('entryDate').value;
+      const unit = document.querySelector('input[name="entryUnit"]:checked').value;
+      const rawAmount = parseFloat(document.getElementById('entryAmount').value);
+
+      if (!date || isNaN(rawAmount) || rawAmount <= 0) {
+        showToast("Proszę podać poprawną ilość!");
+        return;
+      }
+
+      const bagWeight = (fuelType === 'pellet') ? settings.pelletBagWeight : settings.owiesBagWeight;
+      const weightKg = (unit === 'bags') ? (rawAmount * bagWeight) : rawAmount;
+      const unitPricePerKg = getPricePerKg(fuelType);
+      const cost = weightKg * unitPricePerKg;
+
+      const newEntry = {
+        id: 'entry_' + Date.now(),
+        date: date,
+        type: fuelType, // 'pellet' | 'owies'
+        unitUsed: unit,
+        unitQty: rawAmount,
+        weightKg: weightKg,
+        cost: cost,
+        appliedRatePerKg: unitPricePerKg
+      };
+
+      entries.unshift(newEntry);
+      saveEntries();
+
+      // Reset formularza
+      document.getElementById('entryAmount').value = '';
+      calculateLivePreview();
+
+      // Aktualizacja Dashboardu
+      updateAllCalculations();
+      renderHistoryTable();
+      showToast(`Dodano ${numberFormatter.format(weightKg)} kg (${fuelType === 'pellet' ? 'Pellet' : 'Owies'})`);
+    }
+
+    function deleteEntry(id) {
+      if (confirm("Czy na pewno chcesz usunąć ten wpis?")) {
+        entries = entries.filter(item => item.id !== id);
+        saveEntries();
+        updateAllCalculations();
+        renderHistoryTable();
+        showToast("Wpis został usunięty");
+      }
+    }
+
+    // --- AGREGACJE I OBLICZENIA DASHBOARDU ---
+    function updateAllCalculations() {
+      const todayISO = formatDateToISO(new Date());
+      const currentYearMonth = todayISO.substring(0, 7); // "YYYY-MM"
+      const season = getSeasonRange(new Date());
+
+      let todayCost = 0;
+      let todayPelletKg = 0;
+      let todayOwiesKg = 0;
+
+      let monthCost = 0;
+      let monthTotalKg = 0;
+      const monthDaysSet = new Set();
+
+      let seasonCost = 0;
+      let seasonTotalKg = 0;
+      const seasonDaysSet = new Set();
+
+      entries.forEach(entry => {
+        const entryDate = entry.date;
+        const cost = entry.cost;
+        const kg = entry.weightKg;
+
+        // Dziś
+        if (entryDate === todayISO) {
+          todayCost += cost;
+          if (entry.type === 'pellet') todayPelletKg += kg;
+          if (entry.type === 'owies') todayOwiesKg += kg;
+        }
+
+        // Miesiąc
+        if (entryDate.startsWith(currentYearMonth)) {
+          monthCost += cost;
+          monthTotalKg += kg;
+          monthDaysSet.add(entryDate);
+        }
+
+        // Sezon
+        if (entryDate >= season.start && entryDate <= season.end) {
+          seasonCost += cost;
+          seasonTotalKg += kg;
+          seasonDaysSet.add(entryDate);
+        }
+      });
+
+      // Zapis do DOM
+      document.getElementById('kpiTodayCost').textContent = currencyFormatter.format(todayCost);
+      document.getElementById('kpiTodayPellet').textContent = `${numberFormatter.format(todayPelletKg)} kg`;
+      document.getElementById('kpiTodayOwies').textContent = `${numberFormatter.format(todayOwiesKg)} kg`;
+
+      document.getElementById('kpiMonthCost').textContent = currencyFormatter.format(monthCost);
+      document.getElementById('kpiMonthKg').textContent = `${numberFormatter.format(monthTotalKg)} kg`;
+      
+      // Średni koszt dzienny w miesiącu (oparty o liczbę dni, w których rejestrowano zasyp lub min. 1 dzień)
+      const currentDayOfMonth = new Date().getDate();
+      const avgDayCost = monthCost > 0 ? (monthCost / currentDayOfMonth) : 0;
+      document.getElementById('kpiMonthDailyAvg').textContent = `${currencyFormatter.format(avgDayCost)}`;
+
+      document.getElementById('kpiSeasonCost').textContent = currencyFormatter.format(seasonCost);
+      document.getElementById('kpiSeasonTons').textContent = `${(seasonTotalKg / 1000).toFixed(2)} t`;
+      document.getElementById('kpiSeasonDays').textContent = seasonDaysSet.size;
+    }
+
+    // --- TABELA HISTORII ---
+    function renderHistoryTable() {
+      const tbody = document.getElementById('historyTableBody');
+      const emptyState = document.getElementById('emptyHistoryState');
+      const filter = document.getElementById('historyFilter').value;
+
+      let filtered = entries;
+      if (filter !== 'all') {
+        filtered = entries.filter(e => e.type === filter);
+      }
+
+      tbody.innerHTML = '';
+
+      if (filtered.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
+
+      filtered.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-earth-cream/30 transition text-earth-textPrimary";
+
+        const isPellet = item.type === 'pellet';
+        const badgeClass = isPellet ? 'badge-pellet' : 'badge-owies';
+        const typeLabel = isPellet ? '🪵 Pellet' : '🌾 Owies';
+        const detailQty = item.unitUsed === 'bags' ? `${item.unitQty} wor. (${item.weightKg} kg)` : `${numberFormatter.format(item.weightKg)} kg`;
+
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-medium text-xs md:text-sm">${item.date}</td>
+          <td class="py-3 px-4">
+            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-bold ${badgeClass}">
+              ${typeLabel}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-xs md:text-sm font-semibold">${detailQty}</td>
+          <td class="py-3 px-4 text-right font-bold text-xs md:text-sm text-earth-greenDark">${currencyFormatter.format(item.cost)}</td>
+          <td class="py-3 px-4 text-center">
+            <button onclick="deleteEntry('${item.id}')" class="text-earth-textSecondary hover:text-red-600 transition p-1" title="Usuń ten wpis">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // --- MODAL USTAWIEŃ & CENNIKA ---
+    function toggleSettingsModal(show) {
+      const modal = document.getElementById('settingsModal');
+      if (show) {
+        // Wypełnij danymi
+        document.getElementById('cfgPelletPricingType').value = settings.pelletPricingType;
+        document.getElementById('cfgPelletPriceValue').value = settings.pelletPriceValue;
+        document.getElementById('cfgPelletBagWeight').value = settings.pelletBagWeight;
+
+        document.getElementById('cfgOwiesPricingType').value = settings.owiesPricingType;
+        document.getElementById('cfgOwiesPriceValue').value = settings.owiesPriceValue;
+        document.getElementById('cfgOwiesBagWeight').value = settings.owiesBagWeight;
+
+        updateSettingsInputView();
+        recalcConfigRates();
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    function updateSettingsInputView() {
+      const pelletType = document.getElementById('cfgPelletPricingType').value;
+      const pelletLabel = document.getElementById('cfgPelletPriceLabel');
+      pelletLabel.textContent = pelletType === 'ton' ? 'Cena zakupu za 1 tonę (1000 kg)' : 'Cena za 1 worek pelletu';
+
+      const owiesType = document.getElementById('cfgOwiesPricingType').value;
+      const owiesLabel = document.getElementById('cfgOwiesPriceLabel');
+      if (owiesType === 'ton') {
+        owiesLabel.textContent = 'Cena zakupu za 1 tonę (1000 kg)';
+      } else if (owiesType === 'bag') {
+        owiesLabel.textContent = 'Cena za 1 worek owsa';
+      } else {
+        owiesLabel.textContent = 'Cena bezpośrednio za 1 kg';
+      }
+
+      recalcConfigRates();
+    }
+
+    function recalcConfigRates() {
+      const pelletType = document.getElementById('cfgPelletPricingType').value;
+      const pelletVal = parseFloat(document.getElementById('cfgPelletPriceValue').value) || 0;
+      const pelletBagKg = parseFloat(document.getElementById('cfgPelletBagWeight').value) || 15;
+
+      const owiesType = document.getElementById('cfgOwiesPricingType').value;
+      const owiesVal = parseFloat(document.getElementById('cfgOwiesPriceValue').value) || 0;
+      const owiesBagKg = parseFloat(document.getElementById('cfgOwiesBagWeight').value) || 30;
+
+      let pelletKgRate = pelletType === 'ton' ? (pelletVal / 1000) : (pelletVal / pelletBagKg);
+      let owiesKgRate = owiesType === 'ton' ? (owiesVal / 1000) : (owiesType === 'bag' ? (owiesVal / owiesBagKg) : owiesVal);
+
+      document.getElementById('pelletKgRateBadge').textContent = `${currencyFormatter.format(pelletKgRate)} / kg`;
+      document.getElementById('owiesKgRateBadge').textContent = `${currencyFormatter.format(owiesKgRate)} / kg`;
+    }
+
+    function saveSettingsFromModal() {
+      settings.pelletPricingType = document.getElementById('cfgPelletPricingType').value;
+      settings.pelletPriceValue = parseFloat(document.getElementById('cfgPelletPriceValue').value) || 0;
+      settings.pelletBagWeight = parseFloat(document.getElementById('cfgPelletBagWeight').value) || 15;
+
+      settings.owiesPricingType = document.getElementById('cfgOwiesPricingType').value;
+      settings.owiesPriceValue = parseFloat(document.getElementById('cfgOwiesPriceValue').value) || 0;
+      settings.owiesBagWeight = parseFloat(document.getElementById('cfgOwiesBagWeight').value) || 30;
+
+      // Zapis w pamięci przeglądarki
+      localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
+
+      toggleSettingsModal(false);
+      updateUnitSelection();
+      calculateLivePreview();
+      updateAllCalculations();
+      showToast("Zaktualizowano cennik i parametry!");
+    }
+
+    // --- ZAPIS / ODCZYT LOCALSTORAGE ---
+    function loadSettings() {
+      const saved = localStorage.getItem(STORAGE_KEY_SETTINGS);
+      if (saved) {
+        try {
+          settings = Object.assign(settings, JSON.parse(saved));
+        } catch (e) {
+          console.error("Błąd odczytu ustawień:", e);
+        }
+      }
+    }
+
+    function loadEntries() {
+      const saved = localStorage.getItem(STORAGE_KEY_ENTRIES);
+      if (saved) {
+        try {
+          entries = JSON.parse(saved);
+        } catch (e) {
+          console.error("Błąd odczytu bazy:", e);
+          entries = [];
+        }
+      } else {
+        // Dane początkowe (starter demo), aby aplikacja od razu wyglądała atrakcyjnie
+        seedSampleData();
+      }
+    }
+
+    function saveEntries() {
+      localStorage.setItem(STORAGE_KEY_ENTRIES, JSON.stringify(entries));
+    }
+
+    function seedSampleData() {
+      const today = new Date();
+      const d1 = new Date(today);
+      const d2 = new Date(today);
+      d2.setDate(today.getDate() - 2);
+
+      const pelletKgRate = settings.pelletPriceValue / 1000;
+      const owiesKgRate = settings.owiesPriceValue / 1000;
+
+      entries = [
+        {
+          id: 'demo_1',
+          date: formatDateToISO(d1),
+          type: 'pellet',
+          unitUsed: 'bags',
+          unitQty: 2,
+          weightKg: 30,
+          cost: 30 * pelletKgRate,
+          appliedRatePerKg: pelletKgRate
+        },
+        {
+          id: 'demo_2',
+          date: formatDateToISO(d2),
+          type: 'owies',
+          unitUsed: 'kg',
+          unitQty: 15,
+          weightKg: 15,
+          cost: 15 * owiesKgRate,
+          appliedRatePerKg: owiesKgRate
+        }
+      ];
+      saveEntries();
+    }
+
+    function clearAllDataPrompt() {
+      if (confirm("Czy chcesz całkowicie wyczyścić historię zasypów?")) {
+        entries = [];
+        saveEntries();
+        updateAllCalculations();
+        renderHistoryTable();
+        showToast("Historia wyczyszczona");
+      }
+    }
+
+    // --- TOAST NOTIFICATIONS ---
+    function showToast(msg) {
+      const toast = document.getElementById('toastMessage');
+      const text = document.getElementById('toastText');
+      text.textContent = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+  </script>
+</body>
+</html>
